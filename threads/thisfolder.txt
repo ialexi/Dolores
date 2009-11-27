@@ -1,0 +1,2 @@
+CONTROL connections gain control privilege by writing a file named with their connection id
+into this folder, and sending CONTROL.

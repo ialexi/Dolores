@@ -1,0 +1,22 @@
+* 	More modularity: split Dolores into separate files; same with Cornelius, etc.
+	-	each should have both a protocol portion (feedable by any back-end) and a
+		back-end (connector)
+	-	Thestral is the protocol. Dolores is the server. Cornelius is the client on the server.
+		Pomona is the JS SproutCore client: Pomona Sprout.
+
+* 	Command-line arguments for port number, etc.
+
+*	Persistence of connections
+	This will be accomplished first in-memory (but in a generalized way); then in a database for
+	entries older than a certain limit.
+	
+	Investigate using SQLAlchemy or SQLObject for this.
+	
+	
+*	Smarter CONTROL authentication
+	Control authentication will be implemented in a few different portions:
+	-	The Inquisitioner, who determines if a user is allowed to CONTROL based on
+		connection id; can use either a db back-end or a filesystem backend.
+	-	The Wizengamot, which CONTROL clients send their connection id to get
+		real control access; run on a different port so it can be firewalled.
+	
