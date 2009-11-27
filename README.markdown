@@ -45,7 +45,7 @@ How to Use (a bird's eye view)
 ==============================
 Assuming you have the Twisted framework installed, you should be able to start
 the server with just:
-	python dolores.py
+		python dolores.py
 
 Unfortunately, the server right now does not take any arguments. It always serves
 on localhost:8007. Feel free to change this in the code if you wish.
@@ -61,8 +61,8 @@ orbited
 Connecting
 ----------
 Now, you use the cornelius.py file from a Django app. You need two settings defined:
-	DOLORES_SERVER = ("localhost", 8007)
-	DOLORES_PATH = "/Path/To/Dolores/"
+		DOLORES_SERVER = ("localhost", 8007)
+		DOLORES_PATH = "/Path/To/Dolores/"
 
 The latter is needed because the script creates empty files in "/Path/To/Dolores/threads/"
 
@@ -70,8 +70,8 @@ Sending messages
 ----------------
 Sending messages is pretty simple:
 
-	from cornelius import thestral
-	thestral.update(":some/path-that/does-not_have/semicolons", "some message with no newlines you want to send")
+		from cornelius import thestral
+		thestral.update(":some/path-that/does-not_have/semicolons", "some message with no newlines you want to send")
 
 And that sends a message to anyone listening for messages on that track.
 
@@ -86,18 +86,18 @@ The Django app is the one responsible for connecting its clients to the comet se
 The client will send its UID—Pomona, the SproutCore framework client, will send it to a
 URL of your choice followed by the UID. For example:
 
-/:connect/(THE UID HERE)
+		/:connect/(THE UID HERE)
 
 This can easily be handled by a Django view. For example:
-	 def connect(request, path):
-		if request.method == "POST":
-			uid = json.loads(request.raw_post_data)["uid"]
-			path = path.strip()
-			uid = uid.strip()
-			if uid and len(uid) > 10 and path and len(path) > 0:
-				thestral.connect(uid, path)
-				return HttpResponse("{success:true}", mimetype="application/json")
-		return HttpResponseNotFound(path)
+		 def connect(request, path):
+			if request.method == "POST":
+				uid = json.loads(request.raw_post_data)["uid"]
+				path = path.strip()
+				uid = uid.strip()
+				if uid and len(uid) > 10 and path and len(path) > 0:
+					thestral.connect(uid, path)
+					return HttpResponse("{success:true}", mimetype="application/json")
+			return HttpResponseNotFound(path)
 
 
 Pomona Sprout: The SproutCore Framework
@@ -105,51 +105,51 @@ Pomona Sprout: The SproutCore Framework
 Pomona abstracts a lot of the trickiness. For instance, it handles connecting.
 
 Here is an example portion of a data source that uses Pomona (the first 20 lines do all the Comet):
-	init: function()
-	{
-		sc_super();
-		this.thestral = Pomona.Thestral.create({  // Creates a connection
-			connectUrl: "/:connect/",
-			disconnectUrl: "/:disconnect/"
-		});
-		this.thestral.connect(":data", this, "recordWasUpdated"); // requests the server connect Pomona to :data
-	},
+		init: function()
+		{
+			sc_super();
+			this.thestral = Pomona.Thestral.create({  // Creates a connection
+				connectUrl: "/:connect/",
+				disconnectUrl: "/:disconnect/"
+			});
+			this.thestral.connect(":data", this, "recordWasUpdated"); // requests the server connect Pomona to :data
+		},
 	
-	recordWasUpdated: function(path, message) // callback for the connection to :data
-	{
-		// TERRIBLE HACK HERE:
-		var store = RsvpClient.store;
-		SC.Request.getUrl("/:get/" + message.trim()).json().notify(this, "didFetchContacts", store, null).send();
-		return YES;
-	},
+		recordWasUpdated: function(path, message) // callback for the connection to :data
+		{
+			// TERRIBLE HACK HERE:
+			var store = RsvpClient.store;
+			SC.Request.getUrl("/:get/" + message.trim()).json().notify(this, "didFetchContacts", store, null).send();
+			return YES;
+		},
 	
-	// ..........................................................
-	// QUERY SUPPORT
-	// >>>> EVERYTHING FROM HERE ON IS NORMAL.
+		// ..........................................................
+		// QUERY SUPPORT
+		// >>>> EVERYTHING FROM HERE ON IS NORMAL.
 	
-	fetch: function(store, query) { 
-		if (!query) return NO;
+		fetch: function(store, query) { 
+			if (!query) return NO;
 		
-		if (query.get("recordType") === RsvpClient.Contact) {
-			if (this.get("hasFetchedContacts"))
-			{
-				store.dataSourceDidFetchQuery(query);
+			if (query.get("recordType") === RsvpClient.Contact) {
+				if (this.get("hasFetchedContacts"))
+				{
+					store.dataSourceDidFetchQuery(query);
+					return YES;
+				}
+				SC.Request.getUrl("/:data").json().notify(this, "didFetchContacts", store, query).send();
 				return YES;
 			}
-			SC.Request.getUrl("/:data").json().notify(this, "didFetchContacts", store, query).send();
-			return YES;
-		}
 	
-	  return NO ; // return YES if you handled the query
-	},
+		  return NO ; // return YES if you handled the query
+		},
 	
-	didFetchContacts: function(response, store, query)
-	{
-		if (SC.ok(response)) {
-			this.set("hasFetchedContacts", YES);
+		didFetchContacts: function(response, store, query)
+		{
+			if (SC.ok(response)) {
+				this.set("hasFetchedContacts", YES);
 			
-			store.loadRecords(RsvpClient.Contact, response.get('body').content);
-			if (query) store.dataSourceDidFetchQuery(query);
-		} else if (query) store.dataSourceDidErrorQuery(query, response);
-	},
+				store.loadRecords(RsvpClient.Contact, response.get('body').content);
+				if (query) store.dataSourceDidFetchQuery(query);
+			} else if (query) store.dataSourceDidErrorQuery(query, response);
+		},
 	
